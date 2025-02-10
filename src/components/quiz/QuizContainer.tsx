@@ -19,7 +19,11 @@ export default function QuizContainer() {
       const processedQuestions = await processDocxFile(file);
       setQuestions(processedQuestions);
     } catch (error) {
-      alert('Error al procesar el archivo: ' + error.message);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Error desconocido al procesar el archivo';
+      
+      alert('Error al procesar el archivo: ' + errorMessage);
     }
   };
 

@@ -4,12 +4,17 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import QuizContainer from '@/components/quiz/QuizContainer';
 
-interface PageProps {
-  params: { id: string };
-  searchParams: Record<string, string | string[] | undefined>;
-}
+// Importar los tipos correctos de Next.js
+import { Metadata } from 'next';
 
-export default async function QuizPage({ params, searchParams }: PageProps) {
+// No necesitamos definir Props, usaremos los parámetros directamente
+export default async function QuizPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const quizId = Number(params.id);
   const shouldContinue = searchParams.continue === 'true';
 
@@ -28,7 +33,6 @@ export default async function QuizPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  // Si debemos continuar, cargar el progreso
   let savedProgress = null;
   if (shouldContinue) {
     savedProgress = await prisma.userProgress.findFirst({

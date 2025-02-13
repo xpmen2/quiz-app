@@ -4,7 +4,7 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import QuizContainer from '@/components/quiz/QuizContainer';
 
-interface Props {
+interface PageProps {
   params: { id: string };
   searchParams: Record<string, string | string[] | undefined>;
 }

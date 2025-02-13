@@ -42,8 +42,11 @@ const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
           throw new Error(responseText);
         }
 
-        // Solo parsear como JSON si hay contenido
-        const data = responseText ? JSON.parse(responseText) : null;
+        // Ya no almacenamos el resultado en una variable data que no usamos
+        if (responseText) {
+          JSON.parse(responseText); // Solo validamos que sea JSON válido
+        }
+        
         onFileSelect(file);
         
       } catch (error) {
@@ -51,8 +54,7 @@ const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         alert('Error al procesar el archivo: ' + error);
       }
     }
-};
-  
+};  
   return (
     <div className="flex flex-col items-center gap-4">
       <input

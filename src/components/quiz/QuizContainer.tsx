@@ -1,5 +1,4 @@
 'use client';
-'use client';
 import { useState, useEffect } from 'react';
 import { Question as QuestionType } from '@/lib/types';
 import { processDocxFile } from '@/lib/fileProcessor';
@@ -7,11 +6,18 @@ import Question from './Question';
 import FileUploader from './FileUploader';
 import Button from '../ui/Button';
 
+interface SavedProgress {
+  currentQuestion: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  isFinished: boolean;
+}
+
 type QuizContainerProps = {
  initialQuestions?: QuestionType[];
  isExistingQuiz?: boolean;
  quizId?: number;
- savedProgress?: any;
+ savedProgress?: SavedProgress;
 };
 
 export default function QuizContainer({ 

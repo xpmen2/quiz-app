@@ -4,13 +4,23 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import QuizContainer from '@/components/quiz/QuizContainer';
 
+type Params = {
+  id: string;
+}
+
+type SearchParams = {
+  continue?: string;
+}
+
+type Props = {
+  params: Params;
+  searchParams: SearchParams;
+}
+
 export default async function QuizPage({
   params,
   searchParams,
-}: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
+}: Props) {
   const quizId = Number(params.id);
   const shouldContinue = searchParams.continue === 'true';
 

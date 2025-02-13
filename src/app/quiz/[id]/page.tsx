@@ -4,10 +4,6 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import QuizContainer from '@/components/quiz/QuizContainer';
 
-// Importar los tipos correctos de Next.js
-import { Metadata } from 'next';
-
-// No necesitamos definir Props, usaremos los parámetros directamente
 export default async function QuizPage({
   params,
   searchParams,

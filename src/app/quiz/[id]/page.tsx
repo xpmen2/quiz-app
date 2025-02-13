@@ -6,10 +6,10 @@ import QuizContainer from '@/components/quiz/QuizContainer';
 
 interface Props {
   params: { id: string };
-  searchParams: { continue?: string };
+  searchParams: Record<string, string | string[] | undefined>;
 }
 
-export default async function QuizPage({ params, searchParams }: Props) {
+export default async function QuizPage({ params, searchParams }: PageProps) {
   const quizId = Number(params.id);
   const shouldContinue = searchParams.continue === 'true';
 

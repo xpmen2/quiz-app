@@ -1,6 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import Button from '../ui/Button';
+import { processDocxFile } from '@/lib/fileProcessor';
 
 type FileUploaderProps = {
   onFileSelect: (file: File) => void;
@@ -13,19 +14,45 @@ export default function FileUploader({ onFileSelect }: FileUploaderProps) {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
-        console.log('Archivo seleccionado:', file.name); // Log para diagnóstico
+        console.log('Archivo seleccionado:', file.name);
+        
+        const processedQuestions = await processDocxFile(file);
+        console.log('Preguntas procesadas:', processedQuestions);
+
+        const response = await fetch('/api/quiz', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: file.name.replace('.docx', ''),
+            questions: processedQuestions
+          })
+        });
+
+        console.log('Status:', response.status);
+        const responseText = await response.text();
+        console.log('Respuesta del servidor:', responseText);
+
+        if (!response.ok) {
+          throw new Error(responseText);
+        }
+
+        // Solo parsear como JSON si hay contenido
+        const data = responseText ? JSON.parse(responseText) : null;
         onFileSelect(file);
+        
       } catch (error) {
         console.error('Error en FileUploader:', error);
         alert('Error al procesar el archivo: ' + error);
       }
     }
-  };
-
+};
+  
   return (
     <div className="flex flex-col items-center gap-4">
       <input

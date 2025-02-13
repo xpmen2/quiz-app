@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  email         String        @unique
+  name          String?
+  userProgress  UserProgress[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model UserProgress {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  quizId          Int
+  currentQuestion Int       @default(0)
+  correctAnswers  Int       @default(0)
+  incorrectAnswers Int      @default(0)
+  startedAt       DateTime  @default(now())
+  lastAccess      DateTime  @updatedAt
+  isFinished      Boolean   @default(false)
+  user            User      @relation(fields: [userId], references: [id])
+  quiz            Quiz      @relation(fields: [quizId], references: [id])
+  @@unique([userId, quizId])
+}
+
+model Quiz {
+  id          Int        @id @default(autoincrement())
+  title       String
+  questions   Question[]
+  userProgress  UserProgress[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Question {
+  id          Int      @id @default(autoincrement())
+  quizId      Int
+  text        String
+  explanation String?
+  options     Option[]
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Option {
+  id          Int      @id @default(autoincrement())
+  questionId  Int
+  text        String
+  isCorrect   Boolean
+  question    Question @relation(fields: [questionId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -4,12 +4,17 @@ import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import QuizContainer from '@/components/quiz/QuizContainer';
 
-export default async function QuizPage(props: any) {
-  const params = await props.params;
-  const searchParams = await props.searchParams;
+interface PageProps {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ continue?: string }>;
+}
 
-  const quizId = Number(params.id);
-  const shouldContinue = searchParams?.continue === 'true';
+export default async function QuizPage({ params, searchParams }: PageProps) {
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
+  const quizId = Number(resolvedParams.id);
+  const shouldContinue = resolvedSearchParams?.continue === 'true';
 
   const quiz = await prisma.quiz.findUnique({
     where: { id: quizId },

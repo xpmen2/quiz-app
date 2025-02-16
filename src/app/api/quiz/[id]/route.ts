@@ -4,19 +4,19 @@ import prisma from '@/lib/prisma';
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: {
+    params: {
+      id: string;
+    }
+  }
 ) {
   try {
-    // Esperar a que los params estén disponibles
-    const resolvedParams = await params;
-    const id = parseInt(resolvedParams.id);
+    const id = parseInt(await context.params.id);
 
-    // Primero eliminar el progreso
     await prisma.userProgress.deleteMany({
       where: { quizId: id }
     });
 
-    // Luego eliminar el quiz
     const deletedQuiz = await prisma.quiz.delete({
       where: { id }
     });

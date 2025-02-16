@@ -2,19 +2,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
-
 export async function DELETE(
-  _request: Request,
-  context: RouteContext
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
-  try {
-    const id = Number(context.params.id);
+  const id = parseInt(params.id);
 
+  try {
     // Primero eliminamos todo el progreso relacionado
     await prisma.userProgress.deleteMany({
       where: { quizId: id }
@@ -29,7 +23,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting quiz:', error);
     return NextResponse.json(
-      { error: 'Error deleting quiz' },
+      { error: 'Error deleting quiz' }, 
       { status: 500 }
     );
   }

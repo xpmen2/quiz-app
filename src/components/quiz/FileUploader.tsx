@@ -23,38 +23,43 @@ const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const processedQuestions = await processDocxFile(file);
         console.log('Preguntas procesadas:', processedQuestions);
 
+        // Preparamos el payload y lo verificamos antes de enviarlo
+        const payload = {
+          title: file.name.replace('.docx', ''),
+          questions: processedQuestions
+        };
+        console.log('Payload a enviar:', payload);
+
         const response = await fetch('/api/quiz', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            title: file.name.replace('.docx', ''),
-            questions: processedQuestions
-          })
+          body: JSON.stringify(payload)
         });
 
-        console.log('Status:', response.status);
+        // Log de la respuesta raw
         const responseText = await response.text();
-        console.log('Respuesta del servidor:', responseText);
+        console.log('Respuesta raw del servidor:', responseText);
 
         if (!response.ok) {
-          throw new Error(responseText);
+          throw new Error(`Error del servidor: ${responseText}`);
         }
 
-        // Ya no almacenamos el resultado en una variable data que no usamos
+        // Solo parseamos si hay respuesta
         if (responseText) {
-          JSON.parse(responseText); // Solo validamos que sea JSON válido
+          const data = JSON.parse(responseText);
+          console.log('Respuesta parseada:', data);
+          onFileSelect(file);
         }
         
-        onFileSelect(file);
-        
       } catch (error) {
-        console.error('Error en FileUploader:', error);
+        console.error('Error completo:', error);
         alert('Error al procesar el archivo: ' + error);
       }
     }
-};  
+};
+
   return (
     <div className="flex flex-col items-center gap-4">
       <input

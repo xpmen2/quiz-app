@@ -2,15 +2,45 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// Para cargar el progreso
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const quizId = searchParams.get('quizId');
+    
+    if (!quizId) {
+      return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
+    }
+
+    const progress = await prisma.userProgress.findFirst({
+      where: {
+        userId: 1, // Temporal hasta implementar auth
+        quizId: Number(quizId)
+      }
+    });
+
+    return NextResponse.json(progress || {
+      currentQuestion: 0,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      isFinished: false
+    });
+  } catch (error) {
+    console.error('Error loading progress:', error);
+    return NextResponse.json({ error: 'Error loading progress' }, { status: 500 });
+  }
+}
+
+// Para guardar el progreso
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    console.log('Datos recibidos:', data);
+    console.log('Recibiendo datos de progreso:', data);
 
     const progress = await prisma.userProgress.upsert({
       where: {
         userId_quizId: {
-          userId: 1,
+          userId: 1, // Temporal hasta implementar auth
           quizId: data.quizId
         }
       },
@@ -22,7 +52,7 @@ export async function POST(request: Request) {
         lastAccess: new Date()
       },
       create: {
-        userId: 1,
+        userId: 1, // Temporal hasta implementar auth
         quizId: data.quizId,
         currentQuestion: data.currentQuestion,
         correctAnswers: data.correctAnswers,
@@ -32,6 +62,7 @@ export async function POST(request: Request) {
       }
     });
 
+    console.log('Progreso guardado:', progress);
     return NextResponse.json(progress);
   } catch (error) {
     console.error('Error saving progress:', error);

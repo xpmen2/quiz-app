@@ -1,71 +1,60 @@
-// src/app/api/progress/route.ts
+// src/app/api/quiz/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// Para cargar el progreso
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const quizId = searchParams.get('quizId');
-    
-    if (!quizId) {
-      return NextResponse.json({ error: 'Quiz ID is required' }, { status: 400 });
-    }
-
-    const progress = await prisma.userProgress.findFirst({
-      where: {
-        userId: 1, // Temporal hasta implementar auth
-        quizId: Number(quizId)
-      }
-    });
-
-    return NextResponse.json(progress || {
-      currentQuestion: 0,
-      correctAnswers: 0,
-      incorrectAnswers: 0,
-      isFinished: false
-    });
-  } catch (error) {
-    console.error('Error loading progress:', error);
-    return NextResponse.json({ error: 'Error loading progress' }, { status: 500 });
-  }
-}
-
-// Para guardar el progreso
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    console.log('Recibiendo datos de progreso:', data);
+    const bodyText = await request.text();
+    console.log('Request body raw:', bodyText);
 
-    const progress = await prisma.userProgress.upsert({
-      where: {
-        userId_quizId: {
-          userId: 1, // Temporal hasta implementar auth
-          quizId: data.quizId
+    let data;
+    try {
+      data = JSON.parse(bodyText);
+      console.log('Datos parseados:', data);
+    } catch (parseError) {
+      console.error('Error parseando JSON:', parseError);
+      return NextResponse.json({ error: 'Invalid JSON data' }, { status: 400 });
+    }
+
+    if (!data.title || !Array.isArray(data.questions)) {
+      console.error('Datos inválidos:', data);
+      return NextResponse.json({ 
+        error: 'Invalid data structure',
+        received: data
+      }, { status: 400 });
+    }
+
+    const quiz = await prisma.quiz.create({
+      data: {
+        title: data.title,
+        questions: {
+          create: data.questions.map((q: any) => ({
+            text: q.text,
+            explanation: q.explanation || '',
+            options: {
+              create: q.options.map((optionText: string) => ({
+                text: optionText,
+                isCorrect: optionText === q.correctAnswer
+              }))
+            }
+          }))
         }
       },
-      update: {
-        currentQuestion: data.currentQuestion,
-        correctAnswers: data.correctAnswers,
-        incorrectAnswers: data.incorrectAnswers,
-        isFinished: data.isFinished,
-        lastAccess: new Date()
-      },
-      create: {
-        userId: 1, // Temporal hasta implementar auth
-        quizId: data.quizId,
-        currentQuestion: data.currentQuestion,
-        correctAnswers: data.correctAnswers,
-        incorrectAnswers: data.incorrectAnswers,
-        isFinished: data.isFinished,
-        lastAccess: new Date()
+      include: {
+        questions: {
+          include: {
+            options: true
+          }
+        }
       }
     });
 
-    console.log('Progreso guardado:', progress);
-    return NextResponse.json(progress);
+    return NextResponse.json({ success: true, quiz });
+
   } catch (error) {
-    console.error('Error saving progress:', error);
-    return NextResponse.json({ error: 'Error saving progress' }, { status: 500 });
+    console.error('Error en servidor:', error);
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
   }
 }

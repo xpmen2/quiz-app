@@ -1,13 +1,26 @@
 // src/app/api/quiz/route.ts
+// src/app/api/quiz/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+
+interface QuestionData {
+  text: string;
+  explanation: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+interface QuizData {
+  title: string;
+  questions: QuestionData[];
+}
 
 export async function POST(request: Request) {
   try {
     const bodyText = await request.text();
     console.log('Request body raw:', bodyText);
 
-    let data;
+    let data: QuizData;
     try {
       data = JSON.parse(bodyText);
       console.log('Datos parseados:', data);
@@ -28,7 +41,7 @@ export async function POST(request: Request) {
       data: {
         title: data.title,
         questions: {
-          create: data.questions.map((q: any) => ({
+          create: data.questions.map((q: QuestionData) => ({
             text: q.text,
             explanation: q.explanation || '',
             options: {

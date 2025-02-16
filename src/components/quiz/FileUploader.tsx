@@ -5,11 +5,7 @@ import Button from '../ui/Button';
 import { processDocxFile } from '@/lib/fileProcessor';
 import { useRouter } from 'next/navigation';
 
-type FileUploaderProps = {
-  onFileSelect?: (file: File) => void;
-};
-
-export default function FileUploader({ onFileSelect }: FileUploaderProps) {
+export default function FileUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 

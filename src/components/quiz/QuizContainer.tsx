@@ -2,9 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Question as QuestionType } from '@/lib/types';
-import { processDocxFile } from '@/lib/fileProcessor';
 import Question from './Question';
-import FileUploader from './FileUploader';
 import Button from '../ui/Button';
 
 interface SavedProgress {
@@ -71,18 +69,18 @@ export default function QuizContainer({
    }
  }, [savedProgress]);
 
- const handleFileSelect = async (file: File) => {
-   try {
-     const processedQuestions = await processDocxFile(file);
-     setQuestions(processedQuestions);
-   } catch (error) {
-     const errorMessage = error instanceof Error 
-       ? error.message 
-       : 'Error desconocido al procesar el archivo';
+ // const handleFileSelect = async (file: File) => {
+   // try {
+     // const processedQuestions = await processDocxFile(file);
+     // setQuestions(processedQuestions);
+   // } catch (error) {
+     // const errorMessage = error instanceof Error 
+       // ? error.message 
+       // : 'Error desconocido al procesar el archivo';
      
-     alert('Error al procesar el archivo: ' + errorMessage);
-   }
- };
+     // alert('Error al procesar el archivo: ' + errorMessage);
+   // }
+ // };
 
  const handleAnswer = async (isCorrect: boolean) => {
    // Actualizamos el estado local

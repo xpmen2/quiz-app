@@ -5,6 +5,8 @@ import Link from 'next/link';
 import DeleteQuizButton from '@/components/quiz/DeleteQuizButton';
 import FileUploader from '@/components/quiz/FileUploader';
 
+export const revalidate = 0;
+
 export default async function Home() {
   const quizzes = await prisma.quiz.findMany({
     include: {

@@ -39,7 +39,8 @@ export default function FileUploader() {
 
         // Recargar la página para mostrar el nuevo quiz en la lista
         router.refresh();
-        
+        router.push('/');    
+		
       } catch (error) {
         console.error('Error en FileUploader:', error);
         alert('Error al procesar el archivo: ' + error);

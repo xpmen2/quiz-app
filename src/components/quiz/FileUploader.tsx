@@ -1,20 +1,23 @@
+// src\components\quiz\FileUploader.tsx
 'use client';
 import { useRef } from 'react';
 import Button from '../ui/Button';
 import { processDocxFile } from '@/lib/fileProcessor';
+import { useRouter } from 'next/navigation';
 
 type FileUploaderProps = {
-  onFileSelect: (file: File) => void;
+  onFileSelect?: (file: File) => void;
 };
 
 export default function FileUploader({ onFileSelect }: FileUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const handleClick = () => {
     fileInputRef.current?.click();
   };
 
-const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
@@ -23,42 +26,30 @@ const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const processedQuestions = await processDocxFile(file);
         console.log('Preguntas procesadas:', processedQuestions);
 
-        // Preparamos el payload y lo verificamos antes de enviarlo
-        const payload = {
-          title: file.name.replace('.docx', ''),
-          questions: processedQuestions
-        };
-        console.log('Payload a enviar:', payload);
-
         const response = await fetch('/api/quiz', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            title: file.name.replace('.docx', ''),
+            questions: processedQuestions
+          })
         });
 
-        // Log de la respuesta raw
-        const responseText = await response.text();
-        console.log('Respuesta raw del servidor:', responseText);
-
         if (!response.ok) {
-          throw new Error(`Error del servidor: ${responseText}`);
+          throw new Error('Error al guardar en la base de datos');
         }
 
-        // Solo parseamos si hay respuesta
-        if (responseText) {
-          const data = JSON.parse(responseText);
-          console.log('Respuesta parseada:', data);
-          onFileSelect(file);
-        }
+        // Recargar la página para mostrar el nuevo quiz en la lista
+        router.refresh();
         
       } catch (error) {
-        console.error('Error completo:', error);
+        console.error('Error en FileUploader:', error);
         alert('Error al procesar el archivo: ' + error);
       }
     }
-};
+  };
 
   return (
     <div className="flex flex-col items-center gap-4">

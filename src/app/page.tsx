@@ -1,7 +1,9 @@
 // src/app/page.tsx
-import QuizContainer from '@/components/quiz/QuizContainer';
+//import QuizContainer from '@/components/quiz/QuizContainer';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
+import DeleteQuizButton from '@/components/quiz/DeleteQuizButton';
+import FileUploader from '@/components/quiz/FileUploader';
 
 export default async function Home() {
   const quizzes = await prisma.quiz.findMany({
@@ -10,7 +12,7 @@ export default async function Home() {
         select: { questions: true }
       },
       userProgress: {
-        where: { userId: 1 }, // Usuario por defecto
+        where: { userId: 1 },
         orderBy: { lastAccess: 'desc' },
         take: 1
       }
@@ -62,6 +64,10 @@ export default async function Home() {
                             Continuar Quiz (Pregunta {quiz.userProgress[0].currentQuestion + 1})
                           </Link>
                         )}
+                        <DeleteQuizButton 
+                          quizId={quiz.id}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                        />
                       </div>
                     </div>
                   </div>
@@ -74,7 +80,7 @@ export default async function Home() {
         {/* Sección para crear nuevo quiz */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-4">Crear Nuevo Quiz</h2>
-          <QuizContainer />
+          <FileUploader />
         </div>
       </div>
     </main>

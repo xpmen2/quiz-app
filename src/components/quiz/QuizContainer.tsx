@@ -1,3 +1,4 @@
+// src/components/quiz/QuizContainer.tsx
 'use client';
 import { useState, useEffect } from 'react';
 import { Question as QuestionType } from '@/lib/types';
@@ -134,13 +135,10 @@ export default function QuizContainer({
    setQuestions([...questions].sort(() => Math.random() - 0.5));
  };
 
- if (questions.length === 0 && !isExistingQuiz) {
-   return (
-     <div className="max-w-2xl mx-auto mt-8">
-       <FileUploader onFileSelect={handleFileSelect} />
-     </div>
-   );
- }
+// Verificar que estamos en un quiz existente
+if (!isExistingQuiz || questions.length === 0) {
+  return null; // No mostrar nada si no es un quiz existente
+}
 
  if (isFinished) {
    return (

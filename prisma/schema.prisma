@@ -33,7 +33,7 @@ model UserProgress {
   lastAccess      DateTime  @updatedAt
   isFinished      Boolean   @default(false)
   user            User      @relation(fields: [userId], references: [id])
-  quiz            Quiz      @relation(fields: [quizId], references: [id])
+  quiz            Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
   @@unique([userId, quizId])
 }
 
@@ -52,7 +52,7 @@ model Question {
   text        String
   explanation String?
   options     Option[]
-  quiz        Quiz     @relation(fields: [quizId], references: [id])
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -62,7 +62,7 @@ model Option {
   questionId  Int
   text        String
   isCorrect   Boolean
-  question    Question @relation(fields: [questionId], references: [id])
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

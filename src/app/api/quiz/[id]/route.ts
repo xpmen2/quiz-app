@@ -2,14 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function DELETE(
-  request: NextRequest,
-  context: { 
-    params: Record<string, string | string[]> 
-  }
-) {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
-    const id = parseInt(context.params.id as string);
+    // Obtener el id de la URL en lugar de los params
+    const id = parseInt(request.url.split('/').pop() || '');
 
     await prisma.userProgress.deleteMany({
       where: { quizId: id }

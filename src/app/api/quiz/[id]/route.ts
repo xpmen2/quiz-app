@@ -1,14 +1,21 @@
 // src/app/api/quiz/[id]/route.ts
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+
+type Props = {
+  params: {
+    id: string;
+  };
+};
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  props: Props
 ) {
-  const id = parseInt(params.id);
+  const id = parseInt(props.params.id);
 
   try {
+    const prisma = (await import('@/lib/prisma')).default;
+
     // Primero eliminamos todo el progreso relacionado
     await prisma.userProgress.deleteMany({
       where: { quizId: id }

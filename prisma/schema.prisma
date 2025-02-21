@@ -20,6 +20,7 @@ model User {
   userProgress  UserProgress[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  wrongAnswers  WrongAnswer[]
 }
 
 model UserProgress {
@@ -44,6 +45,7 @@ model Quiz {
   userProgress  UserProgress[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  wrongAnswers WrongAnswer[]
 }
 
 model Question {
@@ -55,6 +57,7 @@ model Question {
   quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  wrongAnswers WrongAnswer[]
 }
 
 model Option {
@@ -65,4 +68,19 @@ model Option {
   question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model WrongAnswer {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  quizId      Int
+  questionId  Int
+  createdAt   DateTime @default(now())
+  
+  // Relaciones
+  user        User     @relation(fields: [userId], references: [id])
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, quizId]) // Índice para búsquedas eficientes
 }

@@ -21,6 +21,7 @@ export default async function QuizPage({ params, searchParams }: PageProps) {
  const resolvedSearchParams = await searchParams;
 
  const quizId = Number(resolvedParams.id);
+ const shouldReset = resolvedSearchParams.reset === 'true';
  const shouldContinue = resolvedSearchParams?.continue === 'true';
 
  const quiz = await prisma.quiz.findUnique({
@@ -38,28 +39,51 @@ export default async function QuizPage({ params, searchParams }: PageProps) {
    notFound();
  }
 
- let savedProgress: SavedProgress | undefined;
- if (shouldContinue) {
-   const progress = await prisma.userProgress.findFirst({
-     where: {
-       userId: 1,
-       quizId: quizId
-     }
-   });
+let savedProgress: SavedProgress | undefined;
 
-   if (progress) {
-     savedProgress = {
-       currentQuestion: progress.currentQuestion,
-       correctAnswers: progress.correctAnswers,
-       incorrectAnswers: progress.incorrectAnswers,
-       isFinished: progress.isFinished
-     };
-   }
- }
+if (shouldReset) {
+  // Limpiar el progreso existente
+  await prisma.userProgress.deleteMany({
+    where: {
+      userId: 1,
+      quizId: quizId
+    }
+  });
+  
+  // También limpiar las respuestas incorrectas
+  await prisma.wrongAnswer.deleteMany({
+    where: {
+      userId: 1,
+      quizId: quizId
+    }
+  });
+  
+  // No cargar progreso si es reset
+  savedProgress = undefined;
+} 
+else if (shouldContinue) {
+  // Cargar el progreso solo si no es reset
+  const progress = await prisma.userProgress.findFirst({
+    where: {
+      userId: 1,
+      quizId: quizId
+    }
+  });
+  
+  if (progress) {
+    savedProgress = {
+      currentQuestion: progress.currentQuestion,
+      correctAnswers: progress.correctAnswers,
+      incorrectAnswers: progress.incorrectAnswers,
+      isFinished: progress.isFinished
+    };
+  }
+}
 
  const formattedQuestions = quiz.questions.map(q => {
    const correctOption = q.options.find(opt => opt.isCorrect);
    return {
+     id: q.id,
      text: q.text,
      options: q.options.map(opt => opt.text),
      correctAnswer: correctOption?.text || '',

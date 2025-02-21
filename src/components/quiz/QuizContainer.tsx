@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Question as QuestionType } from '@/lib/types';
 import Question from './Question';
 import Button from '../ui/Button';
+import { useRouter } from 'next/navigation';
 
 interface SavedProgress {
   currentQuestion: number;
@@ -31,6 +32,8 @@ export default function QuizContainer({
  const [incorrectAnswers, setIncorrectAnswers] = useState(0);
  const [isFinished, setIsFinished] = useState(false);
  const [currentQuestionAnswered, setCurrentQuestionAnswered] = useState(false);
+ 
+ const router = useRouter();
 
  // Cargar progreso guardado
  useEffect(() => {
@@ -88,7 +91,35 @@ export default function QuizContainer({
      setCorrectAnswers(prev => prev + 1);
    } else {
      setIncorrectAnswers(prev => prev + 1);
-   }
+   
+
+    // Si la respuesta es incorrecta, guardar en WrongAnswers
+    if (quizId) {
+      try {
+        const currentQuestion = questions[currentIndex];
+        
+        // Verificar si tenemos el ID de la pregunta
+        if (currentQuestion.id) {
+          await fetch('/api/wrong-answer', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              quizId,
+              questionId: currentQuestion.id
+            }),
+          });
+        } else {
+          console.error('Pregunta sin ID:', currentQuestion);
+        }
+      } catch (error) {
+        console.error('Error saving wrong answer:', error);
+      }
+    }
+  }
+     
+   
    setCurrentQuestionAnswered(true);
 
    // Guardamos el progreso al verificar la respuesta
@@ -112,6 +143,59 @@ export default function QuizContainer({
      }
    }
  };
+ 
+const createReviewQuiz = async () => {
+  if (!quizId) return;
+  
+  try {
+    // Llamar al endpoint para crear el quiz de repaso
+    const response = await fetch('/api/create-review-quiz', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        originalQuizId: quizId
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error creating review quiz');
+    }
+    
+    const data = await response.json();
+    
+    // Redirigir al nuevo quiz de repaso
+    if (data.quizId) {
+      router.push(`/quiz/${data.quizId}`);
+    }
+  } catch (error) {
+    console.error('Error creating review quiz:', error);
+    alert('Error al crear el quiz de repaso. Inténtalo de nuevo.');
+  }
+}; 
+
+const restartQuiz = async () => {
+  // Actualizar el estado local
+  setCurrentIndex(0);
+  setCorrectAnswers(0);
+  setIncorrectAnswers(0);
+  setIsFinished(false);
+  setCurrentQuestionAnswered(false);
+  setQuestions([...questions].sort(() => Math.random() - 0.5));
+
+  // Si es un quiz existente, limpiar las respuestas incorrectas
+  if (quizId) {
+    try {
+      // Llamar al endpoint para limpiar las respuestas incorrectas
+      await fetch(`/api/wrong-answer/clear/${quizId}`, {
+        method: 'DELETE'
+      });
+    } catch (error) {
+      console.error('Error clearing wrong answers:', error);
+    }
+  }
+};
 
  const handleNext = () => {
    if (currentQuestionAnswered) {
@@ -124,38 +208,41 @@ export default function QuizContainer({
    }
  };
 
- const restartQuiz = () => {
-   setCurrentIndex(0);
-   setCorrectAnswers(0);
-   setIncorrectAnswers(0);
-   setIsFinished(false);
-   setCurrentQuestionAnswered(false);
-   setQuestions([...questions].sort(() => Math.random() - 0.5));
- };
-
 // Verificar que estamos en un quiz existente
 if (!isExistingQuiz || questions.length === 0) {
   return null; // No mostrar nada si no es un quiz existente
 }
 
- if (isFinished) {
-   return (
-     <div className="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow">
-       <h2 className="text-2xl font-bold mb-4">¡Quiz Completado!</h2>
-       <div className="space-y-2">
-         <p>Total de preguntas: {questions.length}</p>
-         <p className="text-green-600">Respuestas correctas: {correctAnswers}</p>
-         <p className="text-red-600">Respuestas incorrectas: {incorrectAnswers}</p>
-         <p className="font-semibold">
-           Porcentaje de aciertos: {((correctAnswers / questions.length) * 100).toFixed(1)}%
-         </p>
-       </div>
-       <Button onClick={restartQuiz} className="mt-4">
-         Reiniciar Quiz
-       </Button>
-     </div>
-   );
- }
+if (isFinished) {
+  return (
+    <div className="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow">
+      <h2 className="text-2xl font-bold mb-4">¡Quiz Completado!</h2>
+      <div className="space-y-2">
+        <p>Total de preguntas: {questions.length}</p>
+        <p className="text-green-600">Respuestas correctas: {correctAnswers}</p>
+        <p className="text-red-600">Respuestas incorrectas: {incorrectAnswers}</p>
+        <p className="font-semibold">
+          Porcentaje de aciertos: {((correctAnswers / questions.length) * 100).toFixed(1)}%
+        </p>
+      </div>
+      <div className="mt-4 flex gap-3">
+        <Button onClick={restartQuiz}>
+          Reiniciar Quiz
+        </Button>
+        
+        {/* Mostrar botón de crear quiz de repaso solo si hay respuestas incorrectas */}
+        {incorrectAnswers > 0 && quizId && (
+          <Button 
+            onClick={createReviewQuiz}
+            className="bg-amber-600 hover:bg-amber-700"
+          >
+            Crear Quiz de Repaso
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 
  return (
    <div className="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow">

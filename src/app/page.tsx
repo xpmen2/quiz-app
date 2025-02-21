@@ -52,12 +52,12 @@ export default async function Home() {
                         Creado: {new Date(quiz.createdAt).toLocaleDateString()}
                       </p>
                       <div className="flex gap-3">
-                        <Link 
-                          href={`/quiz/${quiz.id}`}
-                          className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          Comenzar Quiz
-                        </Link>
+						<Link 
+						  href={`/quiz/${quiz.id}?reset=true`}  // Añadimos parámetro reset
+						  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+						>
+						  Comenzar Quiz
+						</Link>						
                         {quiz.userProgress[0] && !quiz.userProgress[0].isFinished && (
                           <Link 
                             href={`/quiz/${quiz.id}?continue=true`}

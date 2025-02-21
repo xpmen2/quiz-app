@@ -13,7 +13,7 @@ interface SavedProgress {
 
 interface PageProps {
  params: Promise<{ id: string }>;
- searchParams: Promise<{ continue?: string }>;
+  searchParams: Promise<{ continue?: string; reset?: string }>;
 }
 
 export default async function QuizPage({ params, searchParams }: PageProps) {

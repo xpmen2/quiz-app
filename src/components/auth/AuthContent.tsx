@@ -4,7 +4,24 @@ import FileUploader from '../quiz/FileUploader';
 import Link from 'next/link';
 import DeleteQuizButton from '../quiz/DeleteQuizButton';
 
-export default function AuthContent({ quizzes }) {
+interface Quiz {
+    id: number;
+    title: string;
+    createdAt: Date;
+    _count: {
+        questions: number;
+    };
+    userProgress: Array<{
+        currentQuestion: number;
+        isFinished: boolean;
+    }>;
+}
+
+interface AuthContentProps {
+    quizzes: Quiz[];
+}
+
+export default function AuthContent({ quizzes }: AuthContentProps) {
     const { data: session, status } = useSession(); // Agregamos data para acceder a session
 
     if (status !== 'authenticated') return null;

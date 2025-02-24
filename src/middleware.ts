@@ -1,32 +1,35 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+// src/middleware.ts
+import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { NextRequest } from 'next/server';
 
-export default withAuth(
-    function middleware(req) {
-        const token = req.nextauth.token;
+// Lista de correos de administradores
+const ADMIN_EMAILS = ['email@admin.com']; // Reemplaza con tu email de admin
 
-        // Verificar rutas admin
-        if (req.nextUrl.pathname.startsWith("/admin")) {
-            if (token?.email !== "nelsonrosales@gmail.com") {
-                return NextResponse.redirect(new URL("/", req.url));
-            }
-        }
+export async function middleware(request: NextRequest) {
+    const token = await getToken({ req: request });
 
-        return NextResponse.next();
-    },
-    {
-        callbacks: {
-            authorized: ({ token }) => !!token
+    // Verificar si el usuario está autenticado
+    if (!token) {
+        return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+
+    // Para rutas de admin, verificar si es admin
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+        if (!ADMIN_EMAILS.includes(token.email as string)) {
+            return NextResponse.redirect(new URL('/', request.url));
         }
     }
-);
+
+    return NextResponse.next();
+}
 
 export const config = {
     matcher: [
-        "/quiz/:path*",  // Protege todas las rutas /quiz/...
-        "/api/quiz/:path*", // Protege el API de quiz
-        "/api/progress/:path*", // Protege el API de progreso
-        "/api/wrong-answer/:path*", // Protege el API de respuestas incorrectas
-        "/admin/:path*",
+        "/quiz/:path*",
+        "/api/quiz/:path*",
+        "/api/progress/:path*",
+        "/api/wrong-answer/:path*",
+        "/admin/:path*", // Proteger rutas admin
     ]
 }

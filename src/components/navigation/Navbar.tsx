@@ -6,6 +6,9 @@ import Link from 'next/link';
 export default function Navbar() {
   const { data: session, status } = useSession();
 
+  // Si quieres tener una lista de emails admin
+  const isAdmin = session?.user?.email === "nelsonrosales@gmail.com"; // Reemplaza con tu email de admin
+
   return (
     <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,6 +17,18 @@ export default function Navbar() {
             <Link href="/" className="flex-shrink-0 flex items-center">
               <span className="text-xl font-bold text-blue-600">Quiz App</span>
             </Link>
+
+            {/* Menú de admin */}
+            {isAdmin && (
+              <div className="ml-6">
+                <Link
+                  href="/admin"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Panel Admin
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center">

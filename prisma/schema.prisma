@@ -14,13 +14,17 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
-  name          String?
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  isAuthorized  Boolean   @default(false)
+  accessUntil   DateTime? // Opcional: fecha de expiración
   userProgress  UserProgress[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
   wrongAnswers  WrongAnswer[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model UserProgress {

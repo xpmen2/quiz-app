@@ -2,6 +2,7 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import prisma from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 const handler = NextAuth({
   providers: [
@@ -12,16 +13,56 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // Por ahora, solo logging
-        console.log('Intento de login:', credentials);
-        return null; // Por ahora retornamos null
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Por favor ingrese email y contraseña');
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email }
+        });
+
+        if (!user) {
+          throw new Error('Usuario no encontrado');
+        }
+
+        const passwordMatch = await bcrypt.compare(credentials.password, user.password);
+
+        if (!passwordMatch) {
+          throw new Error('Contraseña incorrecta');
+        }
+
+        // Incluir estado de autorización en el token
+        return {
+          id: user.id.toString(),
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isAuthorized: user.isAuthorized
+        };
       }
     })
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.isAuthorized = user.isAuthorized;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.isAuthorized = token.isAuthorized;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
+      }
+      return session;
+    }
+  },
   pages: {
     signIn: '/auth/login',
-    // signUp: '/auth/register',  // Lo añadiremos después
   },
-})
+});
 
 export { handler as GET, handler as POST }

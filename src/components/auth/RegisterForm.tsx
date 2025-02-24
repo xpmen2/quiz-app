@@ -34,6 +34,7 @@ export default function RegisterForm() {
                 setError(data.error || 'Error al registrar usuario');
             }
         } catch (error) {
+            console.error('Error:', error);
             setError('Error al conectar con el servidor');
         }
     };

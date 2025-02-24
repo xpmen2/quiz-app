@@ -1,9 +1,6 @@
 // src/app/page.tsx
 //import QuizContainer from '@/components/quiz/QuizContainer';
 import prisma from '@/lib/prisma';
-import Link from 'next/link';
-import DeleteQuizButton from '@/components/quiz/DeleteQuizButton';
-import FileUploader from '@/components/quiz/FileUploader';
 import UnAuthContent from '@/components/auth/UnAuthContent';
 import AuthContent from '@/components/auth/AuthContent';
 

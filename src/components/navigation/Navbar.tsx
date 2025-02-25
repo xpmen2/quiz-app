@@ -36,11 +36,6 @@ export default function Navbar() {
               <div className="flex items-center gap-4">
                 <div className="text-gray-700">
                   {session.user?.firstName} {session.user?.lastName}
-                  {!session.user?.isAuthorized && (
-                    <span className="ml-2 text-sm text-amber-600">
-                      (Pendiente de autorización)
-                    </span>
-                  )}
                 </div>
                 <button
                   onClick={() => signOut()}

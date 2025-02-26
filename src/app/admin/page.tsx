@@ -9,7 +9,7 @@ const ADMIN_EMAILS = ['nelsonrosales@gmail.com'];
 
 export default async function AdminPage() {
     // Verificar si el usuario es admin
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
 
     if (!session?.user?.email) {
         redirect('/auth/login');

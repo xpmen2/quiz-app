@@ -3,13 +3,13 @@ import prisma from '@/lib/prisma';
 import UnAuthContent from '@/components/auth/UnAuthContent';
 import AuthContent from '@/components/auth/AuthContent';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+
 
 export const revalidate = 0;
 
 export default async function Home() {
   // Obtener la sesión del usuario actual
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
 

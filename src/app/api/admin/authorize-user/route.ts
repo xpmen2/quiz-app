@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import prisma from '@/lib/prisma';
-import { authOptions } from '@/lib/auth';
 
 // Lista de correos de administradores (sincronizada)
 const ADMIN_EMAILS = ['nelsonrosales@gmail.com'];

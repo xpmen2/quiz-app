@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
 
 interface QuestionData {
   text: string;
@@ -19,7 +18,7 @@ interface QuizData {
 export async function POST(request: Request) {
   try {
     // Obtener la sesión del usuario actual
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
 
     // Verificar si el usuario está autenticado
     if (!session?.user?.email) {
@@ -93,17 +92,17 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     // Obtener la sesión del usuario actual
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
 
     // Verificar si el usuario está autenticado
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Usuario no autenticado' }, { status: 401 });
     }
-
+    const userId = parseInt(session.user.id);
     // Obtener quizzes del usuario actual
     const quizzes = await prisma.quiz.findMany({
       where: {
-        creatorId: parseInt(session.user.id as string)
+        creatorId: userId
       },
       include: {
         _count: {

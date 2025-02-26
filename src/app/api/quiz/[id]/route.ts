@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
 
 export async function DELETE(
   request: NextRequest,
@@ -20,7 +19,7 @@ export async function DELETE(
     }
 
     // Obtener la sesión del usuario actual
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
 
     // Verificar si el usuario está autenticado
     if (!session?.user?.id) {

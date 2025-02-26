@@ -3,11 +3,8 @@ import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { authOptions } from "@/lib/auth";
 
-
-// Exportar la configuración como authOptions
-export const authOptions = {
+const handler = NextAuth({
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -34,7 +31,6 @@ export const authOptions = {
           throw new Error('Contraseña incorrecta');
         }
 
-        // Incluir estado de autorización en el token
         return {
           id: user.id.toString(),
           email: user.email,
@@ -59,7 +55,7 @@ export const authOptions = {
         session.user.isAuthorized = token.isAuthorized;
         session.user.firstName = token.firstName;
         session.user.lastName = token.lastName;
-        session.user.id = token.sub; // Asegurarse de que el ID esté disponible
+        session.user.id = token.sub;
       }
       return session;
     }
@@ -67,9 +63,6 @@ export const authOptions = {
   pages: {
     signIn: '/auth/login',
   },
-};
-
-// Crear el handler usando la configuración
-const handler = NextAuth(authOptions);
+});
 
 export { handler as GET, handler as POST }

@@ -3,13 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: any
-): Promise<NextResponse> {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
-    // Obtener el ID del quiz desde los parámetros
-    const id = parseInt(params.id);
+    // Extraer el ID de la URL
+    const url = new URL(request.url);
+    const pathSegments = url.pathname.split('/');
+    const id = parseInt(pathSegments[pathSegments.length - 1]);
 
     if (isNaN(id)) {
       return NextResponse.json({

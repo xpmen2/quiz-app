@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.isAuthorized = token.isAuthorized;
                 session.user.firstName = token.firstName;
                 session.user.lastName = token.lastName;
-                session.user.id = token.sub; // Asegurarse de que el ID esté disponible
+                session.user.id = token.sub as string; // Asegurarse de que el ID esté disponible
             }
             return session;
         }

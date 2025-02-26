@@ -1,50 +1,74 @@
 // src\components\quiz\FileUploader.tsx
 'use client';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Button from '../ui/Button';
 import { processDocxFile } from '@/lib/fileProcessor';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 export default function FileUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleClick = () => {
+    // Verificar autenticación antes de permitir la selección de archivo
+    if (status !== 'authenticated') {
+      setError('Debes iniciar sesión para subir archivos');
+      return;
+    }
+
     fileInputRef.current?.click();
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      try {
-        console.log('Archivo seleccionado:', file.name);
-        
-        const processedQuestions = await processDocxFile(file);
-        console.log('Preguntas procesadas:', processedQuestions);
+    if (!file) return;
 
-        const response = await fetch('/api/quiz', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: file.name.replace('.docx', ''),
-            questions: processedQuestions
-          })
-        });
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Archivo seleccionado:', file.name);
 
-        if (!response.ok) {
-          throw new Error('Error al guardar en la base de datos');
-        }
-
-        // Recargar la página para mostrar el nuevo quiz en la lista
-        router.refresh();
-        router.push('/');    
-		
-      } catch (error) {
-        console.error('Error en FileUploader:', error);
-        alert('Error al procesar el archivo: ' + error);
+      // Verificar que el usuario esté autenticado
+      if (status !== 'authenticated') {
+        throw new Error('Debes iniciar sesión para crear quizzes');
       }
+
+      const processedQuestions = await processDocxFile(file);
+      console.log('Preguntas procesadas:', processedQuestions);
+
+      const response = await fetch('/api/quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: file.name.replace('.docx', ''),
+          questions: processedQuestions
+        })
+      });
+
+      // Obtener los datos de la respuesta para ver el error específico
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMessage = data.error || 'Error al guardar en la base de datos';
+        console.error('Error en la respuesta:', data);
+        throw new Error(errorMessage);
+      }
+
+      // Recargar la página para mostrar el nuevo quiz en la lista
+      router.refresh();
+      router.push('/');
+
+    } catch (error: any) {
+      console.error('Error en FileUploader:', error);
+      setError(error.message || 'Error al procesar el archivo');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,10 +80,27 @@ export default function FileUploader() {
         onChange={handleFileChange}
         accept=".docx"
         className="hidden"
+        disabled={loading}
       />
-      <Button onClick={handleClick}>
-        Seleccionar archivo DOCX
+
+      {error && (
+        <div className="text-red-600 mb-2 text-sm">
+          {error}
+        </div>
+      )}
+
+      <Button
+        onClick={handleClick}
+        disabled={loading || status === 'loading'}
+      >
+        {loading ? 'Procesando...' : 'Seleccionar archivo DOCX'}
       </Button>
+
+      {status === 'unauthenticated' && (
+        <p className="text-sm text-gray-600 mt-2">
+          Debes iniciar sesión para poder crear quizzes.
+        </p>
+      )}
     </div>
   );
 }

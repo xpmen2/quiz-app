@@ -22,13 +22,13 @@ export async function POST(request: Request) {
 
     // Verificar si el usuario está autenticado
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Usuario no autenticado' }, { status: 401 });
+      return NextResponse.json({ error: 'Debes iniciar sesión para crear quizzes' }, { status: 401 });
     }
 
     // Obtener el ID del usuario
     const userId = session.user.id ? parseInt(session.user.id) : null;
     if (!userId) {
-      return NextResponse.json({ error: 'ID de usuario no disponible' }, { status: 401 });
+      return NextResponse.json({ error: 'No se pudo identificar tu cuenta de usuario' }, { status: 401 });
     }
 
     const bodyText = await request.text();

@@ -3,14 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 
-// Corregir la firma de la función DELETE
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: any
 ): Promise<NextResponse> {
   try {
     // Obtener el ID del quiz desde los parámetros
-    const id = parseInt(context.params.id);
+    const id = parseInt(params.id);
 
     if (isNaN(id)) {
       return NextResponse.json({

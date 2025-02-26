@@ -21,14 +21,41 @@ export async function POST(request: Request) {
     const session = await getServerSession();
 
     // Verificar si el usuario está autenticado
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Debes iniciar sesión para crear quizzes' }, { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({
+        error: 'Debes iniciar sesión para crear quizzes'
+      }, { status: 401 });
     }
 
-    // Obtener el ID del usuario
-    const userId = session.user.id ? parseInt(session.user.id) : null;
+    // Depuración - ver qué hay en la sesión
+    console.log("Datos de sesión:", JSON.stringify(session.user));
+
+    // Intentar obtener el ID del usuario
+    let userId: number | null = null;
+
+    // Método 1: Directamente de session.user.id
+    if (session.user.id) {
+      userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
+    }
+    // Método 2: Si hay un 'sub' en token
+    else if ('sub' in session.user) {
+      userId = typeof session.user.sub === 'string' ? parseInt(session.user.sub) : session.user.sub;
+    }
+    // Método 3: Buscar por email
+    else if (session.user.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      });
+      if (user) {
+        userId = user.id;
+      }
+    }
+
     if (!userId) {
-      return NextResponse.json({ error: 'No se pudo identificar tu cuenta de usuario' }, { status: 401 });
+      return NextResponse.json({
+        error: 'No se pudo identificar tu cuenta de usuario',
+        debug: session.user
+      }, { status: 401 });
     }
 
     const bodyText = await request.text();

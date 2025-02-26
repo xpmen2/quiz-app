@@ -9,7 +9,7 @@ const ADMIN_EMAILS = ['nelsonrosales@gmail.com'];
 export async function POST(request: Request) {
     try {
         // Verificar si el usuario es admin
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession();
 
         if (!session?.user?.email || !ADMIN_EMAILS.includes(session.user.email)) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 403 });

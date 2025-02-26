@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import UnAuthContent from '@/components/auth/UnAuthContent';
 import AuthContent from '@/components/auth/AuthContent';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export const revalidate = 0;
 

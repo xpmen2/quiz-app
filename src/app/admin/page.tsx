@@ -2,7 +2,7 @@
 import AdminPanel from '@/components/admin/AdminPanel';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 // Lista de correos de administradores (sincronizada con middleware y navbar)

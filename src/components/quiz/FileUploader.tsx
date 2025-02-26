@@ -9,7 +9,7 @@ import { useSession } from 'next-auth/react';
 export default function FileUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession(); // Removido session ya que no lo usamos directamente
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,9 +64,14 @@ export default function FileUploader() {
       router.refresh();
       router.push('/');
 
-    } catch (error: any) {
+    } catch (error: unknown) { // Cambiado any por unknown para satisfacer ESLint
       console.error('Error en FileUploader:', error);
-      setError(error.message || 'Error al procesar el archivo');
+      // Manejar el error de forma segura
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('Error al procesar el archivo');
+      }
     } finally {
       setLoading(false);
     }

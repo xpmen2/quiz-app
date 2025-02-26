@@ -25,6 +25,8 @@ model User {
   wrongAnswers  WrongAnswer[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  createdQuizzes Quiz[]   @relation("CreatedQuizzes")
 }
 
 model UserProgress {
@@ -50,6 +52,9 @@ model Quiz {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   wrongAnswers WrongAnswer[]
+
+  creatorId   Int
+  creator     User       @relation(fields: [creatorId], references: [id], name: "CreatedQuizzes")
 }
 
 model Question {

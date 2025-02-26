@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
 
-// Lista de correos de administradores
-const ADMIN_EMAILS = ['email@admin.com']; // Reemplaza con tu email de admin
+// Lista de correos de administradores - SINCRONIZADO CON NAVBAR
+const ADMIN_EMAILS = ['nelsonrosales@gmail.com']; // Email corregido
 
 export async function middleware(request: NextRequest) {
     const token = await getToken({ req: request });

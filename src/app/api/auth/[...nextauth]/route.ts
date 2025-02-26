@@ -4,7 +4,8 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-const handler = NextAuth({
+// Exportar la configuración como authOptions
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -56,6 +57,7 @@ const handler = NextAuth({
         session.user.isAuthorized = token.isAuthorized;
         session.user.firstName = token.firstName;
         session.user.lastName = token.lastName;
+        session.user.id = token.sub; // Asegurarse de que el ID esté disponible
       }
       return session;
     }
@@ -63,6 +65,9 @@ const handler = NextAuth({
   pages: {
     signIn: '/auth/login',
   },
-});
+};
+
+// Crear el handler usando la configuración
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST }

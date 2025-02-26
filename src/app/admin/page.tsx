@@ -2,13 +2,23 @@
 import AdminPanel from '@/components/admin/AdminPanel';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import prisma from '@/lib/prisma';
+
+// Lista de correos de administradores (sincronizada con middleware y navbar)
+const ADMIN_EMAILS = ['nelsonrosales@gmail.com'];
 
 export default async function AdminPage() {
     // Verificar si el usuario es admin
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
+
     if (!session?.user?.email) {
         redirect('/auth/login');
+    }
+
+    // Verificar si el email está en la lista de administradores
+    if (!ADMIN_EMAILS.includes(session.user.email)) {
+        redirect('/'); // Redirigir si no es admin
     }
 
     // Obtener todos los usuarios

@@ -3,13 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 
+// Corregir la firma de la función DELETE
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
-    // Obtener el ID del quiz
-    const id = parseInt(params.id);
+    // Obtener el ID del quiz desde los parámetros
+    const id = parseInt(context.params.id);
 
     if (isNaN(id)) {
       return NextResponse.json({
@@ -57,10 +58,13 @@ export async function DELETE(
     });
 
     // También eliminar respuestas incorrectas si existen
-    if (prisma.wrongAnswer) {
+    try {
       await prisma.wrongAnswer.deleteMany({
         where: { quizId: id }
       });
+    } catch (e) {
+      // Ignorar si la tabla no existe
+      console.log('Nota: No se encontró la tabla wrongAnswer o hubo un error');
     }
 
     // Finalmente eliminar el quiz

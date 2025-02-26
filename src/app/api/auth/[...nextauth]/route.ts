@@ -55,7 +55,7 @@ const handler = NextAuth({
         session.user.isAuthorized = token.isAuthorized;
         session.user.firstName = token.firstName;
         session.user.lastName = token.lastName;
-        session.user.id = token.sub;
+        session.user.id = token.sub as string;
       }
       return session;
     }

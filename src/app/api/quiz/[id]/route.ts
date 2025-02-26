@@ -62,7 +62,7 @@ export async function DELETE(
       await prisma.wrongAnswer.deleteMany({
         where: { quizId: id }
       });
-    } catch (e) {
+    } catch {
       // Ignorar si la tabla no existe
       console.log('Nota: No se encontró la tabla wrongAnswer o hubo un error');
     }

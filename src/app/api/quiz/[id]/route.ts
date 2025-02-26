@@ -21,16 +21,38 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     const session = await getServerSession();
 
     // Verificar si el usuario está autenticado
-    if (!session?.user?.id) {
+    if (!session?.user) {
       return NextResponse.json({
         success: false,
         error: 'Usuario no autenticado'
       }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    // Intentar obtener el ID del usuario
+    let userId: number | null = null;
 
-    // Verificar si el quiz existe y pertenece al usuario actual
+    // Método 1: Directamente de session.user.id
+    if (session.user.id) {
+      userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : Number(session.user.id);
+    }
+    // Método 2: Buscar por email como respaldo
+    else if (session.user.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      });
+      if (user) {
+        userId = user.id;
+      }
+    }
+
+    if (!userId) {
+      return NextResponse.json({
+        success: false,
+        error: 'No se pudo identificar tu cuenta de usuario'
+      }, { status: 401 });
+    }
+
+    // Buscar el quiz para verificar que existe y pertenece al usuario
     const quiz = await prisma.quiz.findUnique({
       where: { id }
     });
@@ -42,7 +64,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       }, { status: 404 });
     }
 
-    // Verificar si el usuario es el creador del quiz
+    // Verificar que el usuario sea el creador del quiz
     if (quiz.creatorId !== userId) {
       return NextResponse.json({
         success: false,
@@ -50,22 +72,22 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       }, { status: 403 });
     }
 
-    // Eliminar los registros relacionados
+    // Eliminar registros relacionados
     await prisma.userProgress.deleteMany({
       where: { quizId: id }
     });
 
-    // También eliminar respuestas incorrectas si existen
+    // Intentar eliminar respuestas incorrectas si existen
     try {
       await prisma.wrongAnswer.deleteMany({
         where: { quizId: id }
       });
     } catch {
       // Ignorar si la tabla no existe
-      console.log('Nota: No se encontró la tabla wrongAnswer o hubo un error');
+      console.log('Nota: No se pudo eliminar respuestas incorrectas');
     }
 
-    // Finalmente eliminar el quiz
+    // Eliminar el quiz
     const deletedQuiz = await prisma.quiz.delete({
       where: { id }
     });

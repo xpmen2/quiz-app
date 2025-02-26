@@ -15,6 +15,65 @@ interface QuizData {
   questions: QuestionData[];
 }
 
+// Método GET para obtener quizzes del usuario actual
+export async function GET() {
+  try {
+    // Obtener la sesión del usuario actual
+    const session = await getServerSession();
+
+    // Verificar si el usuario está autenticado
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Usuario no autenticado' }, { status: 401 });
+    }
+
+    let userId: number | null = null;
+
+    // Intentar obtener el ID del usuario
+    if (session.user.id) {
+      userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : Number(session.user.id);
+    } else if (session.user.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      });
+      if (user) {
+        userId = user.id;
+      }
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: 'No se pudo identificar la cuenta de usuario' }, { status: 401 });
+    }
+
+    // Obtener quizzes del usuario actual
+    const quizzes = await prisma.quiz.findMany({
+      where: {
+        creatorId: userId
+      },
+      include: {
+        _count: {
+          select: { questions: true }
+        },
+        userProgress: {
+          where: { userId: userId },
+          orderBy: { lastAccess: 'desc' },
+          take: 1
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return NextResponse.json(quizzes);
+  } catch (error) {
+    console.error('Error al obtener quizzes:', error);
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : 'Error desconocido'
+    }, { status: 500 });
+  }
+}
+
+// Método POST para crear un nuevo quiz
 export async function POST(request: Request) {
   try {
     // Obtener la sesión del usuario actual
@@ -35,13 +94,9 @@ export async function POST(request: Request) {
 
     // Método 1: Directamente de session.user.id
     if (session.user.id) {
-      userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
+      userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : Number(session.user.id);
     }
-    // Método 2: Si hay un 'sub' en token
-    else if ('sub' in session.user) {
-      userId = typeof session.user.sub === 'string' ? parseInt(session.user.sub) : session.user.sub;
-    }
-    // Método 3: Buscar por email
+    // Método 2: Buscar por email como respaldo
     else if (session.user.email) {
       const user = await prisma.user.findUnique({
         where: { email: session.user.email }
@@ -54,10 +109,11 @@ export async function POST(request: Request) {
     if (!userId) {
       return NextResponse.json({
         error: 'No se pudo identificar tu cuenta de usuario',
-        debug: session.user
+        debug: JSON.stringify(session.user)
       }, { status: 401 });
     }
 
+    // Procesar el cuerpo de la solicitud
     const bodyText = await request.text();
     console.log('Request body raw:', bodyText);
 
@@ -111,46 +167,6 @@ export async function POST(request: Request) {
     console.error('Error en servidor:', error);
     return NextResponse.json({
       error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
-  }
-}
-
-// Añadir método GET para obtener quizzes del usuario actual
-export async function GET() {
-  try {
-    // Obtener la sesión del usuario actual
-    const session = await getServerSession();
-
-    // Verificar si el usuario está autenticado
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Usuario no autenticado' }, { status: 401 });
-    }
-    const userId = parseInt(session.user.id);
-    // Obtener quizzes del usuario actual
-    const quizzes = await prisma.quiz.findMany({
-      where: {
-        creatorId: userId
-      },
-      include: {
-        _count: {
-          select: { questions: true }
-        },
-        userProgress: {
-          where: { userId: parseInt(session.user.id as string) },
-          orderBy: { lastAccess: 'desc' },
-          take: 1
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
-
-    return NextResponse.json(quizzes);
-  } catch (error) {
-    console.error('Error al obtener quizzes:', error);
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Error desconocido'
     }, { status: 500 });
   }
 }

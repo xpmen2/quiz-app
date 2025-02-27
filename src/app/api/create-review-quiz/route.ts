@@ -9,11 +9,34 @@ export async function POST(request: Request) {
     const session = await getServerSession();
 
     // Verificar si el usuario está autenticado
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Usuario no autenticado' }, { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({
+        error: 'Usuario no autenticado'
+      }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id);
+    // Intentar obtener el ID del usuario
+    let userId: number | null = null;
+
+    // Método 1: Directamente de session.user.id
+    if (session.user.id) {
+      userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : Number(session.user.id);
+    }
+    // Método 2: Buscar por email como respaldo
+    else if (session.user.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      });
+      if (user) {
+        userId = user.id;
+      }
+    }
+
+    if (!userId) {
+      return NextResponse.json({
+        error: 'No se pudo identificar tu cuenta de usuario'
+      }, { status: 401 });
+    }
 
     const data = await request.json();
     const originalQuizId = data.originalQuizId;
@@ -27,6 +50,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Quiz original no encontrado' },
         { status: 404 }
+      );
+    }
+
+    // Verificar que el usuario sea el creador del quiz original
+    if (originalQuiz.creatorId !== userId) {
+      return NextResponse.json(
+        { error: 'No tienes permiso para crear un repaso de este quiz' },
+        { status: 403 }
       );
     }
 
@@ -63,7 +94,7 @@ export async function POST(request: Request) {
     const reviewQuiz = await prisma.quiz.create({
       data: {
         title: `${originalQuiz.title} - Repaso`,
-        creatorId: userId, // Añadir el ID del creador
+        creatorId: userId, // Asociar con el creador actual
         questions: {
           create: questions.map(q => ({
             text: q.text,

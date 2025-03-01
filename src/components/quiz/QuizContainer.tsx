@@ -194,15 +194,31 @@ export default function QuizContainer({
     setCurrentQuestionAnswered(false);
     setQuestions([...questions].sort(() => Math.random() - 0.5));
 
-    // Si es un quiz existente, limpiar las respuestas incorrectas
+    // Si es un quiz existente
     if (quizId) {
       try {
-        // Llamar al endpoint para limpiar las respuestas incorrectas
+        // 1. Llamar al endpoint para limpiar las respuestas incorrectas
         await fetch(`/api/wrong-answer/clear/${quizId}`, {
           method: 'DELETE'
         });
+
+        // 2. Reiniciar el progreso en la base de datos usando la API existente
+        await fetch(`/api/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            quizId: quizId,
+            currentQuestion: 0,
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            isFinished: false
+          })
+        });
+
       } catch (error) {
-        console.error('Error clearing wrong answers:', error);
+        console.error('Error reiniciando quiz:', error);
       }
     }
   };
